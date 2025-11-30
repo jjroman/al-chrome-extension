@@ -196,6 +196,386 @@
     .btn-small:disabled { 
       background: #6c757d; 
     }
+    
+    /* New action buttons for two-mode creation */
+    .actions-cell {
+      display: flex;
+      gap: 3px;
+      flex-wrap: nowrap;
+      justify-content: center;
+      white-space: nowrap;
+    }
+    .btn-create-send {
+      padding: 3px 6px;
+      font-size: 8px;
+      width: auto;
+      margin: 0;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-create-send:hover { 
+      background: #218838; 
+    }
+    .btn-create-only {
+      padding: 3px 6px;
+      font-size: 8px;
+      width: auto;
+      margin: 0;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-create-only:hover { 
+      background: #0056b3; 
+    }
+    .btn-create-pending {
+      padding: 3px 6px;
+      font-size: 8px;
+      width: auto;
+      margin: 0;
+      background: #fd7e14;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-create-pending:hover { 
+      background: #e8690b; 
+    }
+    
+    /* Data completeness indicators */
+    .data-complete {
+      color: #28a745;
+      font-size: 12px;
+    }
+    .data-incomplete {
+      color: #fd7e14;
+      font-size: 12px;
+    }
+    tr.incomplete-data {
+      background: #fff8e6;
+    }
+    tr.incomplete-data:hover {
+      background: #fff3cd;
+    }
+    .missing {
+      color: #dc3545;
+      font-style: italic;
+    }
+    
+    /* Cell error indicators for missing vehicle/driver */
+    .cell-error {
+      color: #dc3545;
+      font-weight: 600;
+      background: #fff0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .cell-ok {
+      color: #28a745;
+    }
+    .action-disabled {
+      color: #6c757d;
+      font-size: 10px;
+      font-style: italic;
+    }
+    
+    /* Status badges */
+    .status-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-badge.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .status-badge.sent {
+      background: #cce5ff;
+      color: #004085;
+    }
+    .status-badge.in-progress {
+      background: #ffe5cc;
+      color: #995c00;
+    }
+    .status-badge.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+    .status-badge.canceled {
+      background: #e9ecef;
+      color: #495057;
+    }
+    .status-badge.expired {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .status-badge.abandoned {
+      background: #e8daef;
+      color: #6c3483;
+    }
+    .status-badge.created {
+      background: #d4edda;
+      color: #155724;
+      font-size: 10px;
+    }
+    
+    /* Review Modal Styles */
+    .review-preview {
+      font-size: 12px;
+    }
+    .preview-section {
+      margin-bottom: 16px;
+    }
+    .preview-section h4 {
+      margin: 0 0 8px 0;
+      color: #667eea;
+      font-size: 13px;
+    }
+    .preview-row {
+      padding: 4px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .preview-row:last-child {
+      border-bottom: none;
+    }
+    .preview-alert {
+      padding: 10px 12px;
+      border-radius: 4px;
+      margin-top: 12px;
+      font-size: 11px;
+    }
+    .preview-alert.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+    .preview-alert.info {
+      background: #cce5ff;
+      border: 1px solid #b8daff;
+      color: #004085;
+    }
+    .preview-alert.warning {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
+    .missing-list {
+      margin-top: 8px;
+      padding: 6px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 3px;
+    }
+    
+    /* Modal button styles */
+    .btn-modal {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .btn-modal.btn-success {
+      background: #28a745;
+      color: white;
+    }
+    .btn-modal.btn-success:hover {
+      background: #218838;
+    }
+    .btn-modal.btn-primary {
+      background: #007bff;
+      color: white;
+    }
+    .btn-modal.btn-primary:hover {
+      background: #0056b3;
+    }
+    .btn-modal.btn-warning {
+      background: #fd7e14;
+      color: white;
+    }
+    .btn-modal.btn-warning:hover {
+      background: #e8690b;
+    }
+    .btn-modal.btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-modal.btn-secondary:hover {
+      background: #5a6268;
+    }
+    .btn-modal.btn-info {
+      background: #17a2b8;
+      color: white;
+    }
+    .btn-modal.btn-info:hover {
+      background: #138496;
+    }
+    
+    /* Form styles for modals */
+    .form-group {
+      margin-bottom: 12px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+      font-size: 11px;
+      color: #333;
+    }
+    .form-group .required {
+      color: #dc3545;
+    }
+    .form-input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+      outline: none;
+    }
+    .form-input.readonly {
+      background: #f8f9fa;
+      color: #666;
+      cursor: not-allowed;
+    }
+    .form-input.error {
+      border-color: #dc3545;
+    }
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+    .form-group.half {
+      flex: 1;
+    }
+    .form-hint {
+      display: block;
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .modal-alert {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    .modal-alert.warning {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
+    .modal-alert.info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+    .modal-alert strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+    .modal-alert p {
+      margin: 0;
+      font-size: 11px;
+    }
+    .driver-preview {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 12px;
+      margin-top: 16px;
+    }
+    .driver-preview h4 {
+      margin: 0 0 8px 0;
+      font-size: 11px;
+      color: #666;
+    }
+    .preview-data {
+      display: flex;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+    .preview-label {
+      width: 60px;
+      color: #666;
+    }
+    select.form-input {
+      cursor: pointer;
+    }
+    .matching-drivers-list {
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .matching-driver-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid #e9ecef;
+      font-size: 11px;
+    }
+    .matching-driver-item:last-child {
+      border-bottom: none;
+    }
+    .matching-driver-item .driver-name {
+      font-weight: 600;
+      color: #333;
+    }
+    .matching-driver-item .driver-contact {
+      color: #666;
+      font-size: 10px;
+    }
+    .expected-driver-box {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 4px;
+      padding: 10px 12px;
+      color: #155724;
+    }
+    .text-muted {
+      color: #6c757d;
+    }
+    
+    /* Review modal form elements */
+    #reviewModal .modal-body label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      font-weight: 600;
+      font-size: 11px;
+    }
+    #reviewModal .modal-body textarea,
+    #reviewModal .modal-body input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 11px;
+      box-sizing: border-box;
+    }
+    #reviewModal .modal-body textarea {
+      resize: vertical;
+      min-height: 50px;
+    }
+    
     .status {
       padding: 8px;
       margin: 8px 0;
@@ -519,61 +899,65 @@
         </div>
         <div class="step">
           <span class="step-number">5</span>
-          <strong>Submit Reviews</strong> - Click the <kbd>📝 Review</kbd> button on any route to submit a vehicle review.
+          <strong>Create Reviews</strong> - Use the action buttons to create vehicle reviews.
         </div>
 
-        <h4>📝 Submitting Reviews</h4>
-        <p>When you click the Review button, the extension will:</p>
+        <h4>📝 Creating Reviews (Two Modes)</h4>
+        <p>Routes with complete data (VIN + Driver contact) show two options:</p>
         <ul>
-          <li><strong>Check if vehicle exists</strong> - If not, you'll be prompted to create it with Make, Model, Year, and Type.</li>
-          <li><strong>Check if driver exists</strong> - If not, you'll be prompted to create them with their contact info.</li>
-          <li><strong>Handle multiple drivers</strong> - If multiple drivers share the same phone/email, the system matches by name.</li>
-          <li><strong>Prompt for review details</strong> - Enter notes and select damage positions.</li>
+          <li><strong>📧 Send directly</strong> (green) - Creates review AND sends inspection notification to driver immediately.</li>
+          <li><strong>📝 Create Review</strong> (blue) - Creates review in PENDING status. Send later from Dashboard.</li>
+        </ul>
+        <p>Routes with incomplete data show one option:</p>
+        <ul>
+          <li><strong>📝 Create Review</strong> (orange) - Creates review in PENDING status with available data.</li>
         </ul>
 
-        <h4>🚗 Creating Vehicles</h4>
-        <p>When a vehicle doesn't exist, you'll need to provide:</p>
+        <h4>📊 Review Status</h4>
         <ul>
-          <li><strong>Make</strong> - e.g., Ford, Mercedes, RAM</li>
-          <li><strong>Model</strong> - e.g., Transit, Sprinter, ProMaster</li>
-          <li><strong>Year</strong> - e.g., 2024</li>
-          <li><strong>Type</strong> - e.g., Van, Truck, Car</li>
+          <li><span class="status-badge pending">PENDING</span> - Created, awaiting send</li>
+          <li><span class="status-badge sent">SENT</span> - Notification sent to driver</li>
+          <li><span class="status-badge in-progress">IN PROGRESS</span> - Driver started inspection</li>
+          <li><span class="status-badge completed">COMPLETED</span> - Inspection finished</li>
         </ul>
 
-        <h4>👤 Creating Drivers</h4>
-        <p>Driver information is pre-filled from Amazon Logistics data. You can confirm or edit:</p>
+        <h4>📍 Data Indicators</h4>
         <ul>
-          <li>First Name & Last Name</li>
-          <li>Phone Number (required)</li>
-          <li>Email (optional, for notifications)</li>
+          <li>✅ <strong>Complete</strong> - Has VIN and driver contact (phone/email)</li>
+          <li>⚠️ <strong>Incomplete</strong> - Missing VIN or driver contact</li>
         </ul>
 
         <div class="tip">
-          💡 <strong>Tip:</strong> The driver will receive an email notification with a link to complete the vehicle review if their email is available.
+          💡 <strong>Tip:</strong> You can complete missing data and send inspections later from the Dashboard.
         </div>
-
-        <h4>📍 Damage Positions</h4>
-        <p>Available positions for damage inspection:</p>
-        <ul>
-          <li><kbd>Roof</kbd> <kbd>Top</kbd> <kbd>Front</kbd> <kbd>Back</kbd></li>
-          <li><kbd>Left</kbd> <kbd>Right</kbd> <kbd>Inside</kbd></li>
-        </ul>
 
         <div class="warning">
           ⚠️ <strong>Note:</strong> You must be logged into both Amazon Logistics AND the Vehicle API for all features to work.
         </div>
 
         <h4>❓ Need More Help?</h4>
-        <p>Check the <code>/documentation</code> folder for detailed guides:</p>
-        <ul>
-          <li><code>QUICK_START.md</code> - Getting started guide</li>
-          <li><code>TROUBLESHOOTING.md</code> - Common issues and solutions</li>
-          <li><code>DEBUG_GUIDE.md</code> - Debugging tips</li>
-        </ul>
+        <p>Check the <code>/documentation</code> folder for detailed guides.</p>
       </div>
       <div class="modal-footer">
-        <span class="version">Version 1.1.1</span>
+        <span class="version">Version 1.2.0</span>
         <button class="btn" id="closeHelpBtn2" style="width: auto; margin: 0; padding: 6px 16px;">Got it!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Modal (for Create & Send / Create Only dialogs) -->
+  <div id="reviewModal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="reviewModalTitle">📝 Create Review</h3>
+        <button class="modal-close" id="closeReviewBtn">&times;</button>
+      </div>
+      <div class="modal-body" id="reviewModalBody">
+        <!-- Content will be dynamically inserted -->
+      </div>
+      <div class="modal-footer">
+        <button id="reviewModalCancel" class="btn-modal btn-secondary" style="margin-right: 8px;">Cancel</button>
+        <button id="reviewModalConfirm" class="btn-modal btn-success">Confirm</button>
       </div>
     </div>
   </div>
