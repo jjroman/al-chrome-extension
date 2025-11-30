@@ -78,24 +78,26 @@ For routes where both vehicle and driver exist:
 ### Route Display
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│ Route Code │ VIN          │ Driver Phone │ Status      │ Actions         │
-├──────────────────────────────────────────────────────────────────────────┤
-│ ABC-123    │ ✅ VIN12345  │ ✅ 555-1234  │ Ready       │ [Send] [Create] │
-│ DEF-456    │ ⚠️ VIN67890  │ ✅ 555-5678  │ No vehicle  │ (disabled)      │
-│ GHI-789    │ ✅ VIN11111  │ ⚠️ 555-9999  │ No driver   │ (disabled)      │
-│ JKL-012    │ ✅ VIN22222  │ ✅ 555-0000  │ ✅ CREATED  │ (none)          │
-└──────────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│ Route Code │ VIN          │ Driver Phone │ Status      │ Actions                  │
+├───────────────────────────────────────────────────────────────────────────────────┤
+│ ABC-123    │ VIN12345     │ 555-1234     │ —           │ [Send directly] [Create] │
+│ DEF-456    │ ⚠️ VIN67890  │ 555-5678     │ —           │ [Create]                 │
+│ GHI-789    │ VIN11111     │ ⚠️ 555-9999  │ —           │ [Create]                 │
+│ JKL-012    │ VIN22222     │ 555-0000     │ CREATED     │ —                        │
+└───────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+- **Green VIN/Phone**: Found in the system (displayed in green color)
+- **⚠️ Red VIN/Phone**: Not found in the system (displayed in red with warning icon)
 
 ### Status Meanings
 
 | Status | What to Do |
 |--------|------------|
-| **Ready** (green) | Click Send or Create to submit review |
-| **No vehicle** (red VIN) | Go to Dashboard → Vehicles → Create the vehicle first |
-| **No driver** (red phone) | Go to Dashboard → Persons → Create the driver first |
-| **CREATED** (badge) | Review already exists - no action needed |
+| **Both found** (green) | Click "Send directly" to send notification, or "Create" to save as pending |
+| **Missing vehicle or driver** (red) | Click "Create" to save as pending (can send later from Dashboard) |
+| **CREATED** | Review already exists for this date - no action needed |
 
 ---
 
