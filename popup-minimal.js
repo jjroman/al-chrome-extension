@@ -99,6 +99,11 @@ function setupEventListeners() {
     document.getElementById('helpModal').classList.remove('show');
   });
   
+  // Refresh button
+  document.getElementById('refreshBtn').addEventListener('click', () => {
+    location.reload();
+  });
+  
   // Review modal
   document.getElementById('closeReviewBtn').addEventListener('click', () => {
     document.getElementById('reviewModal').classList.remove('show');
@@ -229,6 +234,9 @@ async function fetchAndDisplayRoutes() {
       if (response.status === 401 || response.status === 403) {
         throw new Error('Amazon session expired. Please login to logistics.amazon.com first.');
       }
+      if (response.status === 502 || response.status === 503 || response.status === 504) {
+        throw new Error('Amazon session expired or service unavailable. Please refresh logistics.amazon.com and try again.');
+      }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
@@ -247,20 +255,16 @@ async function fetchAndDisplayRoutes() {
     const journeys = parseRoutes(data);
     window.parsedJourneys = journeys;
     
-    // Fetch existing reviews and check vehicle/driver status
-    let existingReviews = [];
+    // Batch check: existing reviews + vehicle/driver status in one API call
     let routeChecks = {};
     
     if (authToken && !isTokenExpired(authToken)) {
-      showStatus('Checking existing reviews...', 'loading');
-      existingReviews = await getReviewsByDate(date);
-      
-      showStatus('Checking vehicles and drivers...', 'loading');
-      routeChecks = await checkAllRoutes(journeys);
+      showStatus('Checking routes...', 'loading');
+      routeChecks = await batchCheckRoutes(journeys, date);
     }
     
     // Display journeys
-    displayJourneys(journeys, existingReviews, routeChecks);
+    displayJourneys(journeys, routeChecks);
     document.getElementById('saveJsonBtn').disabled = false;
     
     const total = journeys.valid.length + journeys.invalid.length;
@@ -276,58 +280,27 @@ async function fetchAndDisplayRoutes() {
   }
 }
 
-// Get reviews for a specific date
-async function getReviewsByDate(date) {
-  if (!authToken) return [];
+// Batch check: validate all routes in a single API call
+// Returns vehicle status, driver status, existing review info, and recommended action
+async function batchCheckRoutes(journeys, date) {
+  if (!authToken) return {};
   
-  try {
-    const response = await fetch(
-      `${CONFIG.vehicleApi.baseUrl}/api/VehicleReviews?reviewDate=${date}&limit=100`,
-      {
-        method: 'GET',
-        headers: {
-          'accept': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
-      }
-    );
-    
-    if (!response.ok) return [];
-    
-    const result = await response.json();
-    return result.items || [];
-  } catch (error) {
-    console.error('Error fetching reviews:', error);
-    return [];
-  }
-}
-
-// Check vehicle/driver status for all routes
-async function checkAllRoutes(journeys) {
   const allJourneys = [...journeys.valid, ...journeys.invalid];
-  const checks = {};
   
-  for (const journey of allJourneys) {
-    if (journey.vinNumber || journey.transporterPhone) {
-      try {
-        const result = await checkVehicleAndDriver(journey);
-        if (result) {
-          checks[journey.routeCode] = result;
-        }
-      } catch (error) {
-        console.error(`Check failed for ${journey.routeCode}:`, error);
-      }
-    }
-  }
-  
-  return checks;
-}
+  const request = {
+    reviewDate: date,
+    routes: allJourneys.map(j => ({
+      routeCode: j.routeCode,
+      vehicleVin: j.vinNumber || null,
+      driverPhone: j.transporterPhone || null,
+      driverFirstName: getFirstName(j.transporterName),
+      driverLastName: getLastName(j.transporterName)
+    }))
+  };
 
-// Check if vehicle and driver exist
-async function checkVehicleAndDriver(journey) {
   try {
     const response = await fetch(
-      `${CONFIG.vehicleApi.baseUrl}${CONFIG.vehicleApi.reviewsCheck}`,
+      `${CONFIG.vehicleApi.baseUrl}/api/VehicleReviews/byExtension/batch-check`,
       {
         method: 'POST',
         headers: {
@@ -335,21 +308,28 @@ async function checkVehicleAndDriver(journey) {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          vehicleVin: journey.vinNumber,
-          driverPhone: journey.transporterPhone,
-          driverEmail: journey.transporterEmail,
-          driverFirstName: getFirstName(journey.transporterName),
-          driverLastName: getLastName(journey.transporterName)
-        })
+        body: JSON.stringify(request)
       }
     );
 
-    if (!response.ok) return null;
-    return await response.json();
+    if (!response.ok) {
+      console.error('Batch check failed:', response.status);
+      return {};
+    }
+    
+    const result = await response.json();
+    console.log('Batch check response:', result);
+    
+    // Convert to lookup by routeCode
+    const checksByRoute = {};
+    result.results.forEach(r => {
+      checksByRoute[r.routeCode] = r;
+    });
+    
+    return checksByRoute;
   } catch (error) {
-    console.error('Check error:', error);
-    return null;
+    console.error('Batch check error:', error);
+    return {};
   }
 }
 
@@ -410,27 +390,21 @@ function parseRoutes(data) {
 }
 
 // Display journeys in table
-function displayJourneys(journeys, existingReviews = [], routeChecks = {}) {
+// routeChecks contains batch check results with: vehicleStatus, driverStatus, reviewExists, action
+function displayJourneys(journeys, routeChecks = {}) {
   const resultsDiv = document.getElementById('results');
   const routesList = document.getElementById('routesList');
   
   routesList.innerHTML = '';
   
-  // Create review lookup by routeCode
-  const reviewsByRoute = {};
-  existingReviews.forEach(review => {
-    if (review.routeCode) {
-      reviewsByRoute[review.routeCode] = review;
-    }
-  });
-  
   const allJourneys = [...journeys.valid, ...journeys.invalid];
   
   if (allJourneys.length > 0) {
-    const header = document.createElement('h3');
-    header.textContent = `All Routes (${allJourneys.length})`;
-    header.style.color = '#667eea';
-    routesList.appendChild(header);
+    // Update the routes count in the header
+    const routesCountSpan = document.getElementById('routesCount');
+    if (routesCountSpan) {
+      routesCountSpan.textContent = `(${allJourneys.length})`;
+    }
     
     const tableContainer = document.createElement('div');
     tableContainer.className = 'table-container';
@@ -452,83 +426,81 @@ function displayJourneys(journeys, existingReviews = [], routeChecks = {}) {
     routesList.appendChild(tableContainer);
   
     const tbody = document.getElementById('allRoutes');
+    
+    // Store routeChecks globally for row updates
+    window.routeChecks = routeChecks;
   
     allJourneys.forEach((journey, index) => {
       const row = document.createElement('tr');
-      const checkResult = routeChecks[journey.routeCode] || null;
-      const existingReview = reviewsByRoute[journey.routeCode] || null;
+      row.setAttribute('data-route', journey.routeCode);
+      const check = routeChecks[journey.routeCode] || null;
       
       // Check data availability
       const hasVin = !!journey.vinNumber;
       const hasPhone = !!journey.transporterPhone;
       
-      // Check vehicle/driver existence
-      const vehicleExists = checkResult?.vehicleStatus === 'FOUND';
-      const vehicleNotFound = checkResult?.vehicleStatus === 'NOT_FOUND';
-      const driverExists = checkResult?.driverStatus === 'FOUND' || checkResult?.driverStatus === 'MULTIPLE_FOUND';
-      const driverNotFound = checkResult?.driverStatus === 'NOT_FOUND';
+      // Get status from batch check response
+      const vehicleStatus = check?.vehicleStatus;
+      const driverStatus = check?.driverStatus;
+      const action = check?.action || 'CREATE_ONLY';
+      const reviewExists = check?.reviewExists || false;
+      const reviewStatus = check?.reviewStatus;
       
-      // Build VIN cell
+      // Build VIN cell based on vehicleStatus
       let vinCell = '';
       if (!hasVin) {
         vinCell = '<span class="text-muted">N/A</span>';
-      } else if (vehicleNotFound) {
+      } else if (vehicleStatus === 'NOT_FOUND') {
         vinCell = `<span class="cell-error" title="Vehicle not found in system">⚠️ ${journey.vinNumber}</span>`;
-      } else if (vehicleExists) {
-        vinCell = `<span class="cell-ok">✅ ${journey.vinNumber}</span>`;
+      } else if (vehicleStatus === 'INVALID_VIN_FORMAT') {
+        vinCell = `<span class="cell-error" title="Invalid VIN format">⚠️ ${journey.vinNumber}</span>`;
+      } else if (vehicleStatus === 'FOUND') {
+        vinCell = `<span class="cell-ok">${journey.vinNumber}</span>`;
       } else {
         vinCell = journey.vinNumber;
       }
       
-      // Build phone cell
+      // Build phone cell based on driverStatus
       let phoneCell = '';
       if (!hasPhone) {
         phoneCell = '<span class="text-muted">N/A</span>';
-      } else if (driverNotFound) {
+      } else if (driverStatus === 'NOT_FOUND') {
         phoneCell = `<span class="cell-error" title="Driver not found in system">⚠️ ${journey.transporterPhone}</span>`;
-      } else if (driverExists) {
-        phoneCell = `<span class="cell-ok">✅ ${journey.transporterPhone}</span>`;
+      } else if (driverStatus === 'INVALID_PHONE_FORMAT') {
+        phoneCell = `<span class="cell-error" title="Invalid phone format">⚠️ ${journey.transporterPhone}</span>`;
+      } else if (driverStatus === 'FOUND' || driverStatus === 'MULTIPLE_FOUND') {
+        phoneCell = `<span class="cell-ok">${journey.transporterPhone}</span>`;
       } else {
         phoneCell = journey.transporterPhone;
       }
       
-      // Build status and actions
+      // Build status and actions based on action from API
       let statusCell = '';
       let actionButtons = '';
       
-      if (existingReview) {
-        // Review already exists
-        const status = existingReview.workflowStatus || 'CREATED';
+      if (action === 'ALREADY_EXISTS') {
+        // Review already exists for this route+date - no actions available
+        const status = reviewStatus || 'CREATED';
         statusCell = `<span class="status-badge ${status.toLowerCase()}">${status}</span>`;
         actionButtons = '<span class="text-muted">—</span>';
-      } else {
+      } else if (authToken) {
         statusCell = '<span class="text-muted">—</span>';
         
-        // Can only create if both vehicle AND driver exist
-        const canCreate = vehicleExists && driverExists;
-        
-        if (authToken) {
-          if (canCreate) {
-            actionButtons = `
-              <button class="btn-create-send" data-index="${index}" title="Create and send immediately">📧 Send directly</button>
-              <button class="btn-create-only" data-index="${index}" title="Create as pending">📝 Create Review</button>
-            `;
-          } else {
-            // Show why we can't create
-            const missing = [];
-            if (vehicleNotFound) missing.push('Vehicle');
-            if (driverNotFound) missing.push('Driver');
-            if (!hasVin) missing.push('VIN');
-            if (!hasPhone) missing.push('Phone');
-            
-            const tooltip = missing.length > 0 
-              ? `Missing: ${missing.join(', ')}. Create in Dashboard first.`
-              : 'Checking...';
-            actionButtons = `<span class="text-muted action-disabled" title="${tooltip}">Create in Dashboard</span>`;
-          }
+        if (action === 'CAN_SEND') {
+          // Both vehicle and driver found - show Send directly and Create buttons
+          actionButtons = `
+            <button class="btn btn-success btn-small" data-index="${index}" data-action="send" title="Create and send notification immediately"><i class="fa-solid fa-paper-plane"></i> Send</button>
+            <button class="btn btn-primary btn-small" data-index="${index}" data-action="create" title="Create as pending (no notification)"><i class="fa-solid fa-plus"></i> Create</button>
+          `;
         } else {
-          actionButtons = '<span class="text-muted">Login required</span>';
+          // CREATE_ONLY: Vehicle or driver not found - show only Create button
+          actionButtons = `
+            <button class="btn btn-primary btn-small" data-index="${index}" data-action="create" title="Create as pending (send later from Dashboard)"><i class="fa-solid fa-plus"></i> Create</button>
+          `;
         }
+      } else {
+        statusCell = '<span class="text-muted">—</span>';
+        actionButtons = '<span class="text-muted">Login required</span>';
       }
       
       row.innerHTML = `
@@ -545,17 +517,19 @@ function displayJourneys(journeys, existingReviews = [], routeChecks = {}) {
     // Store journeys for button handlers
     window.allJourneysFlat = allJourneys;
     
-    // Add click handlers
-    document.querySelectorAll('.btn-create-send').forEach(btn => {
+    // Add click handlers for action buttons
+    document.querySelectorAll('.btn[data-action="send"]').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.getAttribute('data-index'));
+        const button = e.target.closest('button');
+        const index = parseInt(button.getAttribute('data-index'));
         showReviewDialog(window.allJourneysFlat[index], true);
       });
     });
     
-    document.querySelectorAll('.btn-create-only').forEach(btn => {
+    document.querySelectorAll('.btn[data-action="create"]').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        const index = parseInt(e.target.getAttribute('data-index'));
+        const button = e.target.closest('button');
+        const index = parseInt(button.getAttribute('data-index'));
         showReviewDialog(window.allJourneysFlat[index], false);
       });
     });
@@ -582,22 +556,22 @@ function showReviewDialog(journey, sendNotification) {
   const confirmBtn = document.getElementById('reviewModalConfirm');
   const cancelBtn = document.getElementById('reviewModalCancel');
   
-  modalTitle.textContent = sendNotification 
-    ? '📧 Create & Send Inspection' 
-    : '📝 Create Review (Pending)';
+  modalTitle.innerHTML = sendNotification 
+    ? '<i class="fa-solid fa-paper-plane"></i> Create & Send Inspection' 
+    : '<i class="fa-solid fa-plus"></i> Create Review (Pending)';
   
   const alertHtml = sendNotification 
     ? `<div class="preview-alert success">
-        ✅ <strong>Ready to Send</strong> - The driver will receive an email/SMS notification immediately.
+        <i class="fa-solid fa-circle-check"></i> <strong>Ready to Send</strong> - The driver will receive an email/SMS notification immediately.
       </div>`
     : `<div class="preview-alert info">
-        📝 <strong>Pending Status</strong> - No notification will be sent. You can send later from the Dashboard.
+        <i class="fa-solid fa-clock"></i> <strong>Pending Status</strong> - No notification will be sent. You can send later from the Dashboard.
       </div>`;
   
   modalBody.innerHTML = `
     <div class="review-preview">
       <div class="preview-section">
-        <h4>📋 Review Details</h4>
+        <h4><i class="fa-solid fa-clipboard-list"></i> Review Details</h4>
         <div class="preview-row"><strong>Route:</strong> ${journey.routeCode || 'N/A'}</div>
         <div class="preview-row"><strong>Vehicle VIN:</strong> ${journey.vinNumber || 'N/A'}</div>
         <div class="preview-row"><strong>Driver:</strong> ${journey.transporterName || 'N/A'}</div>
@@ -605,7 +579,7 @@ function showReviewDialog(journey, sendNotification) {
         <div class="preview-row"><strong>Email:</strong> ${journey.transporterEmail || 'N/A'}</div>
       </div>
       <div class="preview-section">
-        <h4>📝 Review Options</h4>
+        <h4><i class="fa-solid fa-sliders"></i> Review Options</h4>
         <label for="reviewNotes">Notes:</label>
         <textarea id="reviewNotes" rows="2" placeholder="Enter review notes...">Damage inspection</textarea>
         <label for="reviewPositions">Positions (comma-separated):</label>
@@ -615,7 +589,9 @@ function showReviewDialog(journey, sendNotification) {
     </div>
   `;
   
-  confirmBtn.textContent = sendNotification ? '📧 Create & Send' : '📝 Create as Pending';
+  confirmBtn.innerHTML = sendNotification 
+    ? '<i class="fa-solid fa-paper-plane"></i> Create & Send' 
+    : '<i class="fa-solid fa-plus"></i> Create as Pending';
   confirmBtn.className = sendNotification ? 'btn-modal btn-success' : 'btn-modal btn-primary';
   
   // Replace buttons to remove old listeners
@@ -690,13 +666,43 @@ async function submitReview(journey, notes, positions, sendNotification) {
     showStatus(`✅ Review created! Status: ${status}`, 'success');
     console.log('Review created:', result);
     
-    // Refresh routes after a short delay
-    setTimeout(fetchAndDisplayRoutes, 1500);
+    // Update only the affected row instead of refreshing the whole table
+    updateRowAfterCreate(journey.routeCode, status);
 
   } catch (error) {
     console.error('Submit error:', error);
     showStatus(`❌ ${error.message}`, 'error');
   }
+}
+
+// Update only the affected row after review creation
+function updateRowAfterCreate(routeCode, reviewStatus) {
+  const row = document.querySelector(`tr[data-route="${routeCode}"]`);
+  if (!row) {
+    console.warn(`Row not found for route: ${routeCode}`);
+    return;
+  }
+  
+  // Update the status cell (5th column, index 4)
+  const statusCell = row.cells[4];
+  if (statusCell) {
+    statusCell.innerHTML = `<span class="status-badge ${reviewStatus.toLowerCase()}">${reviewStatus}</span>`;
+  }
+  
+  // Update the actions cell (6th column, index 5) - no more actions available
+  const actionsCell = row.cells[5];
+  if (actionsCell) {
+    actionsCell.innerHTML = '<span class="text-muted">—</span>';
+  }
+  
+  // Update the global routeChecks to reflect the new state
+  if (window.routeChecks && window.routeChecks[routeCode]) {
+    window.routeChecks[routeCode].action = 'ALREADY_EXISTS';
+    window.routeChecks[routeCode].reviewExists = true;
+    window.routeChecks[routeCode].reviewStatus = reviewStatus;
+  }
+  
+  console.log(`Row updated for route ${routeCode}: status=${reviewStatus}`);
 }
 
 // Helper functions

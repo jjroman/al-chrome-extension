@@ -1,751 +1,672 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amazon Logistics</title>
+  <title>Checkify - Vehicle Reviews</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    * {
+    /* Reset & Base */
+    *, *::before, *::after {
       box-sizing: border-box;
-    }
-    body {
-      width: 750px;
-      padding: 12px;
       margin: 0;
-      font-family: Arial, sans-serif;
-      overflow-x: hidden;
+      padding: 0;
     }
-    h2 { 
-      color: #667eea; 
-      margin: 0 0 12px 0;
-      font-size: 16px;
-    }
-    h3 {
-      margin: 0 0 8px 0;
+
+    body {
+      width: 780px;
+      font-family: 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif;
       font-size: 13px;
+      line-height: 1.4;
+      color: #232f3e;
+      background: white;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
     }
-    .auth-section {
-      background: #f0f4ff;
-      padding: 8px 10px;
-      border-radius: 4px;
-      margin-bottom: 12px;
-      border: 1px solid #667eea;
+
+    /* Main Container */
+    .main-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #232f3e 0%, #37475a 100%);
+      color: white;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-logo {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
     }
-    .auth-section label {
-      margin: 0;
-      white-space: nowrap;
+
+    .logo-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: #00a86b;
+    }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 16px;
+      padding-left: 16px;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header-title i {
+      color: #00a86b;
+    }
+
+    .env-badge {
+      font-size: 9px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+
+    .env-badge.local {
+      background: #00a86b;
+      color: #232f3e;
+    }
+
+    .env-badge.production {
+      background: #00a86b;
+      color: white;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Auth Bar (shown when logged in) */
+    .auth-bar {
+      background: linear-gradient(90deg, #37475a 0%, #485769 100%);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .auth-bar.hidden {
+      display: none;
+    }
+
+    .auth-bar .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
       font-size: 12px;
     }
-    .auth-section input {
-      flex: 1;
-      min-width: 80px;
-      padding: 6px 8px;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      font-size: 11px;
-      margin: 0;
-      height: 28px;
+
+    .auth-bar .user-info i {
+      color: #00a86b;
+      font-size: 14px;
     }
-    .auth-section .btn-login {
-      background: #667eea;
+
+    .btn-logout {
+      background: linear-gradient(180deg, #dc3545 0%, #c82333 100%);
       color: white;
       border: none;
       padding: 6px 16px;
-      border-radius: 3px;
+      border-radius: 4px;
       cursor: pointer;
       font-size: 11px;
       font-weight: 600;
-      white-space: nowrap;
-      height: 28px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
-    .auth-section .btn-login:hover {
-      background: #5a6fd6;
+
+    .btn-logout:hover {
+      background: linear-gradient(180deg, #c82333 0%, #bd2130 100%);
     }
-    .auth-section .btn-login:disabled {
-      background: #9ca3af;
+
+    /* Login Section (shown when not logged in) */
+    .auth-section {
+      background: linear-gradient(90deg, #37475a 0%, #485769 100%);
+      padding: 12px 16px;
+    }
+
+    .auth-section.hidden {
+      display: none;
+    }
+
+    .auth-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .auth-row label {
+      color: #00a86b;
+      font-weight: 600;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .auth-row input {
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      min-width: 130px;
+    }
+
+    .auth-row input:focus {
+      outline: none;
+      border-color: #00a86b;
+      box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.3);
+    }
+
+    .btn-login {
+      background: linear-gradient(180deg, #f7ca00 0%, #f0b000 100%);
+      color: #232f3e;
+      border: 1px solid #c99700;
+      padding: 8px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-login:hover {
+      background: linear-gradient(180deg, #f0b000 0%, #e0a000 100%);
+    }
+
+    .btn-login:disabled {
+      background: #6c757d;
+      border-color: #6c757d;
+      color: white;
       cursor: not-allowed;
     }
+
     .auth-status {
       width: 100%;
-      padding: 4px 8px;
-      border-radius: 3px;
-      font-size: 10px;
-      margin-top: 4px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-top: 8px;
     }
+
     .auth-status.hidden {
       display: none;
     }
+
     .auth-status.loading {
       background: #fff3cd;
       color: #856404;
     }
+
     .auth-status.error {
       background: #f8d7da;
       color: #721c24;
     }
+
     .auth-status.success {
       background: #d4edda;
       color: #155724;
     }
-    .controls-row {
+
+    /* Main Content Area */
+    .content-area {
+      padding: 12px;
+      background: #f5f6f7;
+    }
+
+    /* Controls Card */
+    .controls-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .controls-title {
+      color: #232f3e;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
     }
+
+    .controls-title i {
+      color: #00a86b;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
     .controls-row label {
+      font-weight: 600;
+      color: #37475a;
+      font-size: 12px;
       margin: 0;
-      white-space: nowrap;
     }
+
     .controls-row input[type="date"] {
-      padding: 6px 8px;
-      margin: 0;
-      height: 28px;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      font-size: 11px;
-    }
-    .controls-row .btn {
-      width: auto;
-      margin: 0;
-      padding: 6px 16px;
-      height: 28px;
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-    }
-    .auth-bar {
-      background: #667eea;
-      color: white;
       padding: 8px 12px;
+      border: 1px solid #d5d9d9;
       border-radius: 4px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       font-size: 12px;
-    }
-    .auth-bar-user {
-      font-weight: 600;
-    }
-    .btn-logout {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 4px 12px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    .btn-logout:hover {
-      background: #c82333;
+      background: white;
     }
 
-    /* Environment badge */
-    .env-badge {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .env-badge.local {
-      background: #ffc107;
-      color: #212529;
-    }
-    .env-badge.production {
-      background: #28a745;
-      color: white;
+    .controls-row input[type="date"]:focus {
+      outline: none;
+      border-color: #00a86b;
+      box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
     }
 
+    /* Buttons */
     .btn {
-      width: 100%;
-      padding: 8px;
-      margin: 6px 0;
-      background: #667eea;
-      color: white;
-      border: none;
+      padding: 8px 20px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: none;
     }
-    .btn:hover { 
-      background: #5568d3; 
+
+    .btn-primary {
+      background: linear-gradient(180deg, #f7ca00 0%, #f0b000 100%);
+      color: #232f3e;
+      border: 1px solid #c99700;
     }
-    .btn:disabled { 
-      opacity: 0.5; 
-      cursor: not-allowed; 
+
+    .btn-primary:hover {
+      background: linear-gradient(180deg, #f0b000 0%, #e0a000 100%);
     }
+
+    .btn-primary:disabled {
+      background: #d5d9d9;
+      border-color: #d5d9d9;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    .btn-success {
+      background: linear-gradient(180deg, #00a86b 0%, #008f5b 100%);
+      color: white;
+      border: 1px solid #007a4d;
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(180deg, #008f5b 0%, #007a4d 100%);
+    }
+
+    .btn-success:disabled {
+      background: #d5d9d9;
+      border-color: #d5d9d9;
+      color: #6c757d;
+      cursor: not-allowed;
+    }
+
     .btn-small {
-      padding: 3px 6px;
-      font-size: 9px;
-      width: auto;
-      margin: 0;
-      background: #28a745;
-      white-space: nowrap;
-    }
-    .btn-small:hover { 
-      background: #218838; 
-    }
-    .btn-small:disabled { 
-      background: #6c757d; 
+      padding: 4px 8px;
+      font-size: 10px;
     }
     
-    /* New action buttons for two-mode creation */
-    .actions-cell {
+    /* Status Messages */
+    .status {
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 16px;
       display: flex;
-      gap: 3px;
-      flex-wrap: nowrap;
-      justify-content: center;
-      white-space: nowrap;
+      align-items: center;
+      gap: 8px;
     }
-    .btn-create-send {
-      padding: 3px 6px;
-      font-size: 8px;
-      width: auto;
-      margin: 0;
-      background: #28a745;
+
+    .status.hidden {
+      display: none;
+    }
+
+    .status.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+    }
+
+    .status.loading {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
+
+    .status.info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Results Section */
+    #results {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+    }
+
+    .results-header {
+      background: linear-gradient(135deg, #232f3e 0%, #37475a 100%);
       color: white;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      white-space: nowrap;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .btn-create-send:hover { 
-      background: #218838; 
-    }
-    .btn-create-only {
-      padding: 3px 6px;
-      font-size: 8px;
-      width: auto;
+
+    .results-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin: 0;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
+    }
+
+    .results-header h3 i {
+      color: #00a86b;
+    }
+
+    .table-container {
+      max-height: 320px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* Table Styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    thead {
+      background: #f5f6f7;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    th {
+      padding: 12px 10px;
+      text-align: left;
+      font-weight: 600;
+      color: #37475a;
+      border-bottom: 2px solid #e7e9ec;
       white-space: nowrap;
+      font-size: 11px;
+      background: #f5f6f7;
     }
-    .btn-create-only:hover { 
-      background: #0056b3; 
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid #e7e9ec;
+      vertical-align: middle;
+      font-size: 11px;
     }
-    .btn-create-pending {
-      padding: 3px 6px;
-      font-size: 8px;
-      width: auto;
-      margin: 0;
-      background: #fd7e14;
-      color: white;
-      border: none;
-      border-radius: 3px;
-      cursor: pointer;
-      white-space: nowrap;
+
+    tbody tr:hover {
+      background: #fef8e8;
     }
-    .btn-create-pending:hover { 
-      background: #e8690b; 
-    }
-    
-    /* Data completeness indicators */
-    .data-complete {
-      color: #28a745;
-      font-size: 12px;
-    }
-    .data-incomplete {
-      color: #fd7e14;
-      font-size: 12px;
-    }
+
     tr.incomplete-data {
       background: #fff8e6;
     }
+
     tr.incomplete-data:hover {
       background: #fff3cd;
     }
-    .missing {
-      color: #dc3545;
-      font-style: italic;
+
+    tr.invalid {
+      background: #fff0f0;
     }
-    
-    /* Cell error indicators for missing vehicle/driver */
+
+    tr.invalid:hover {
+      background: #ffe6e6;
+    }
+
+    /* Cell States */
+    .cell-ok {
+      color: #00a86b;
+    }
+
     .cell-error {
       color: #dc3545;
       font-weight: 600;
       background: #fff0f0;
-      padding: 2px 6px;
-      border-radius: 3px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+    }
+
+    .text-muted {
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .missing {
+      color: #dc3545;
+      font-style: italic;
+    }
+
+    /* Status Badges */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .status-badge.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-badge.sent {
+      background: #cce5ff;
+      color: #004085;
+    }
+
+    .status-badge.in-progress {
+      background: #ffe5cc;
+      color: #995c00;
+    }
+
+    .status-badge.completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.canceled {
+      background: #e9ecef;
+      color: #495057;
+    }
+
+    .status-badge.expired {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-badge.abandoned {
+      background: #e8daef;
+      color: #6c3483;
+    }
+
+    .status-badge.created {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    /* Action Buttons */
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+      flex-wrap: nowrap;
+      justify-content: center;
+    }
+
+    .btn-action {
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-create-send {
+      background: linear-gradient(180deg, #00a86b 0%, #008f5b 100%);
+      color: white;
+      border: 1px solid #007a4d;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-    .cell-ok {
-      color: #28a745;
+
+    .btn-create-send:hover {
+      background: linear-gradient(180deg, #008f5b 0%, #007a4d 100%);
     }
+
+    .btn-create-only {
+      background: linear-gradient(180deg, #007bff 0%, #0069d9 100%);
+      color: white;
+      border: 1px solid #0056b3;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-create-only:hover {
+      background: linear-gradient(180deg, #0069d9 0%, #0056b3 100%);
+    }
+
+    .btn-create-pending {
+      background: linear-gradient(180deg, #fd7e14 0%, #e8690b 100%);
+      color: white;
+    }
+
+    .btn-create-pending:hover {
+      background: linear-gradient(180deg, #e8690b 0%, #d55a00 100%);
+    }
+
     .action-disabled {
       color: #6c757d;
       font-size: 10px;
       font-style: italic;
     }
-    
-    /* Status badges */
-    .status-badge {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 8px;
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-    .status-badge.pending {
-      background: #fff3cd;
-      color: #856404;
-    }
-    .status-badge.sent {
-      background: #cce5ff;
-      color: #004085;
-    }
-    .status-badge.in-progress {
-      background: #ffe5cc;
-      color: #995c00;
-    }
-    .status-badge.completed {
-      background: #d4edda;
-      color: #155724;
-    }
-    .status-badge.canceled {
-      background: #e9ecef;
-      color: #495057;
-    }
-    .status-badge.expired {
-      background: #f8d7da;
-      color: #721c24;
-    }
-    .status-badge.abandoned {
-      background: #e8daef;
-      color: #6c3483;
-    }
-    .status-badge.created {
-      background: #d4edda;
-      color: #155724;
-      font-size: 10px;
-    }
-    
-    /* Review Modal Styles */
-    .review-preview {
+
+    /* Data indicators */
+    .data-complete {
+      color: #00a86b;
       font-size: 12px;
-    }
-    .preview-section {
-      margin-bottom: 16px;
-    }
-    .preview-section h4 {
-      margin: 0 0 8px 0;
-      color: #667eea;
-      font-size: 13px;
-    }
-    .preview-row {
-      padding: 4px 0;
-      border-bottom: 1px solid #f0f0f0;
-    }
-    .preview-row:last-child {
-      border-bottom: none;
-    }
-    .preview-alert {
-      padding: 10px 12px;
-      border-radius: 4px;
-      margin-top: 12px;
-      font-size: 11px;
-    }
-    .preview-alert.success {
-      background: #d4edda;
-      border: 1px solid #c3e6cb;
-      color: #155724;
-    }
-    .preview-alert.info {
-      background: #cce5ff;
-      border: 1px solid #b8daff;
-      color: #004085;
-    }
-    .preview-alert.warning {
-      background: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-    }
-    .missing-list {
-      margin-top: 8px;
-      padding: 6px;
-      background: rgba(255,255,255,0.5);
-      border-radius: 3px;
-    }
-    
-    /* Modal button styles */
-    .btn-modal {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .btn-modal.btn-success {
-      background: #28a745;
-      color: white;
-    }
-    .btn-modal.btn-success:hover {
-      background: #218838;
-    }
-    .btn-modal.btn-primary {
-      background: #007bff;
-      color: white;
-    }
-    .btn-modal.btn-primary:hover {
-      background: #0056b3;
-    }
-    .btn-modal.btn-warning {
-      background: #fd7e14;
-      color: white;
-    }
-    .btn-modal.btn-warning:hover {
-      background: #e8690b;
-    }
-    .btn-modal.btn-secondary {
-      background: #6c757d;
-      color: white;
-    }
-    .btn-modal.btn-secondary:hover {
-      background: #5a6268;
-    }
-    .btn-modal.btn-info {
-      background: #17a2b8;
-      color: white;
-    }
-    .btn-modal.btn-info:hover {
-      background: #138496;
-    }
-    
-    /* Form styles for modals */
-    .form-group {
-      margin-bottom: 12px;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 4px;
-      font-weight: 600;
-      font-size: 11px;
-      color: #333;
-    }
-    .form-group .required {
-      color: #dc3545;
-    }
-    .form-input {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 12px;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .form-input:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
-      outline: none;
-    }
-    .form-input.readonly {
-      background: #f8f9fa;
-      color: #666;
-      cursor: not-allowed;
-    }
-    .form-input.error {
-      border-color: #dc3545;
-    }
-    .form-row {
-      display: flex;
-      gap: 12px;
-    }
-    .form-group.half {
-      flex: 1;
-    }
-    .form-hint {
-      display: block;
-      font-size: 10px;
-      color: #666;
-      margin-top: 4px;
-    }
-    .modal-alert {
-      padding: 12px;
-      border-radius: 4px;
-      margin-bottom: 16px;
-    }
-    .modal-alert.warning {
-      background: #fff3cd;
-      border: 1px solid #ffeeba;
-      color: #856404;
-    }
-    .modal-alert.info {
-      background: #d1ecf1;
-      border: 1px solid #bee5eb;
-      color: #0c5460;
-    }
-    .modal-alert strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-    .modal-alert p {
-      margin: 0;
-      font-size: 11px;
-    }
-    .driver-preview {
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 4px;
-      padding: 12px;
-      margin-top: 16px;
-    }
-    .driver-preview h4 {
-      margin: 0 0 8px 0;
-      font-size: 11px;
-      color: #666;
-    }
-    .preview-data {
-      display: flex;
-      padding: 4px 0;
-      font-size: 11px;
-    }
-    .preview-label {
-      width: 60px;
-      color: #666;
-    }
-    select.form-input {
-      cursor: pointer;
-    }
-    .matching-drivers-list {
-      border: 1px solid #e9ecef;
-      border-radius: 4px;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    .matching-driver-item {
-      padding: 8px 12px;
-      border-bottom: 1px solid #e9ecef;
-      font-size: 11px;
-    }
-    .matching-driver-item:last-child {
-      border-bottom: none;
-    }
-    .matching-driver-item .driver-name {
-      font-weight: 600;
-      color: #333;
-    }
-    .matching-driver-item .driver-contact {
-      color: #666;
-      font-size: 10px;
-    }
-    .expected-driver-box {
-      background: #d4edda;
-      border: 1px solid #c3e6cb;
-      border-radius: 4px;
-      padding: 10px 12px;
-      color: #155724;
-    }
-    .text-muted {
-      color: #6c757d;
-    }
-    
-    /* Review modal form elements */
-    #reviewModal .modal-body label {
-      display: block;
-      margin-top: 10px;
-      margin-bottom: 4px;
-      font-weight: 600;
-      font-size: 11px;
-    }
-    #reviewModal .modal-body textarea,
-    #reviewModal .modal-body input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      font-size: 11px;
-      box-sizing: border-box;
-    }
-    #reviewModal .modal-body textarea {
-      resize: vertical;
-      min-height: 50px;
-    }
-    
-    .status {
-      padding: 8px;
-      margin: 8px 0;
-      border-radius: 3px;
-      font-size: 11px;
-    }
-    .hidden { 
-      display: none; 
-    }
-    .success { 
-      background: #d4edda; 
-      color: #155724; 
-    }
-    .error { 
-      background: #f8d7da; 
-      color: #721c24; 
-    }
-    .info { 
-      background: #d1ecf1; 
-      color: #0c5460; 
-    }
-    .loading { 
-      background: #fff3cd; 
-      color: #856404; 
-    }
-    input[type="text"],
-    input[type="password"],
-    input[type="date"] {
-      width: 100%;
-      padding: 6px;
-      margin: 4px 0 10px 0;
-      border: 1px solid #ddd;
-      border-radius: 3px;
-      font-size: 11px;
-    }
-    label {
-      font-weight: 600;
-      font-size: 11px;
-      display: block;
-      margin-top: 4px;
-    }
-    #results {
-      max-height: 500px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 8px;
-      background: #f9f9f9;
-      margin-top: 12px;
-    }
-    #results h3 {
-      margin: 0 0 8px 0;
-      color: #667eea;
-      font-size: 14px;
-      position: sticky;
-      top: 0;
-      background: #f9f9f9;
-      padding: 4px 0;
-      z-index: 5;
-    }
-    #results h4 {
-      margin: 12px 0 8px 0;
-      font-size: 12px;
-      color: #dc3545;
-    }
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      margin: 8px 0;
-      border-radius: 3px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      font-size: 9px;
-      table-layout: auto;
-      min-width: 100%;
-    }
-    th {
-      background: #667eea;
-      color: white;
-      padding: 6px 3px;
-      text-align: left;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      white-space: nowrap;
-      font-size: 9px;
-    }
-    td {
-      padding: 4px 3px;
-      border-bottom: 1px solid #e0e0e0;
-      word-wrap: break-word;
-      overflow-wrap: anywhere;
-      font-size: 9px;
-      vertical-align: top;
-    }
-    /* Column sizing - more compact */
-    table td:nth-child(1),
-    table th:nth-child(1) { width: 60px; }   /* Route */
-    table td:nth-child(2),
-    table th:nth-child(2) { width: 35px; text-align: center; }   /* Badge */
-    table td:nth-child(3),
-    table th:nth-child(3) { width: 90px; }  /* Driver Name */
-    table td:nth-child(4),
-    table th:nth-child(4) { width: 85px; }  /* Phone */
-    table td:nth-child(5),
-    table th:nth-child(5) { width: 90px; }  /* VIN */
-    table td:nth-child(6),
-    table th:nth-child(6) { width: 90px; }  /* Start Time */
-    table td:nth-child(7),
-    table th:nth-child(7) { width: 60px; text-align: center; } /* Actions */
-    
-    tbody tr:hover {
-      background: #f0f7ff;
-    }
-    tr.invalid {
-      background: #ffe6e6;
-    }
-    tr.invalid:hover {
-      background: #ffd6d6;
-    }
-    
-    /* Scrollbar styling */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #555;
     }
 
-    /* Header with help button */
-    .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
+    .data-incomplete {
+      color: #fd7e14;
+      font-size: 12px;
     }
-    .header-row h2 {
-      margin: 0;
-    }
-    .btn-help {
-      background: #17a2b8;
-      color: white;
-      border: none;
-      padding: 4px 10px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 11px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .btn-help:hover {
-      background: #138496;
-    }
-
-    /* Help Modal */
+    
+    /* Modal Overlay */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -753,141 +674,631 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 100;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
       justify-content: center;
       align-items: center;
     }
+
     .modal-overlay.show {
       display: flex;
     }
+
     .modal {
       background: white;
       border-radius: 8px;
-      width: 90%;
-      max-width: 650px;
-      max-height: 80%;
+      width: 92%;
+      max-width: 560px;
+      max-height: 85%;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     }
+
     .modal-header {
-      background: #667eea;
+      background: linear-gradient(135deg, #232f3e 0%, #37475a 100%);
       color: white;
-      padding: 12px 16px;
+      padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     .modal-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin: 0;
-      font-size: 14px;
     }
+
     .modal-close {
       background: none;
       border: none;
       color: white;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
       padding: 0;
       line-height: 1;
-    }
-    .modal-close:hover {
       opacity: 0.8;
+      transition: opacity 0.2s;
     }
+
+    .modal-close:hover {
+      opacity: 1;
+    }
+
     .modal-body {
-      padding: 16px;
+      padding: 20px;
       overflow-y: auto;
       max-height: 400px;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.6;
     }
+
+    .modal-footer {
+      background: #f5f6f7;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      border-top: 1px solid #e7e9ec;
+    }
+
+    .modal-footer .version {
+      float: left;
+      color: #6c757d;
+      font-size: 10px;
+      margin-right: auto;
+    }
+
+    /* Modal Content Styles */
+    .review-preview {
+      font-size: 12px;
+    }
+
+    .preview-section {
+      margin-bottom: 16px;
+    }
+
+    .preview-section h4 {
+      color: #232f3e;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0 0 10px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #00a86b;
+    }
+
+    .preview-row {
+      padding: 6px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 12px;
+    }
+
+    .preview-row:last-child {
+      border-bottom: none;
+    }
+
+    .preview-row strong {
+      color: #37475a;
+    }
+
+    .preview-alert {
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-top: 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .preview-alert.success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+    }
+
+    .preview-alert.info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .preview-alert.warning {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
+
+    .missing-list {
+      margin-top: 8px;
+      padding: 8px;
+      background: rgba(255,255,255,0.5);
+      border-radius: 4px;
+    }
+
+    /* Modal buttons */
+    .btn-modal {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-modal.btn-success {
+      background: linear-gradient(180deg, #00a86b 0%, #008f5b 100%);
+      color: white;
+    }
+
+    .btn-modal.btn-success:hover {
+      background: linear-gradient(180deg, #008f5b 0%, #007a4d 100%);
+    }
+
+    .btn-modal.btn-primary {
+      background: linear-gradient(180deg, #007bff 0%, #0069d9 100%);
+      color: white;
+    }
+
+    .btn-modal.btn-primary:hover {
+      background: linear-gradient(180deg, #0069d9 0%, #0056b3 100%);
+    }
+
+    .btn-modal.btn-warning {
+      background: linear-gradient(180deg, #fd7e14 0%, #e8690b 100%);
+      color: white;
+    }
+
+    .btn-modal.btn-warning:hover {
+      background: linear-gradient(180deg, #e8690b 0%, #d55a00 100%);
+    }
+
+    .btn-modal.btn-secondary {
+      background: linear-gradient(180deg, #6c757d 0%, #5a6268 100%);
+      color: white;
+    }
+
+    .btn-modal.btn-secondary:hover {
+      background: linear-gradient(180deg, #5a6268 0%, #4e555b 100%);
+    }
+
+    .btn-modal.btn-info {
+      background: linear-gradient(180deg, #17a2b8 0%, #138496 100%);
+      color: white;
+    }
+
+    .btn-modal.btn-info:hover {
+      background: linear-gradient(180deg, #138496 0%, #117a8b 100%);
+    }
+    
+    /* Form styles for modals */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      color: #37475a;
+    }
+
+    .form-group .required {
+      color: #dc3545;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d5d9d9;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: #00a86b;
+      box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+      outline: none;
+    }
+
+    .form-input.readonly {
+      background: #f5f6f7;
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    .form-input.error {
+      border-color: #dc3545;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-group.half {
+      flex: 1;
+    }
+
+    .form-hint {
+      display: block;
+      font-size: 10px;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+
+    .modal-alert {
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    .modal-alert.warning {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+    }
+
+    .modal-alert.info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+    }
+
+    .modal-alert strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .modal-alert p {
+      margin: 0;
+      font-size: 11px;
+    }
+
+    .driver-preview {
+      background: #f5f6f7;
+      border: 1px solid #e7e9ec;
+      border-radius: 6px;
+      padding: 14px;
+      margin-top: 16px;
+    }
+
+    .driver-preview h4 {
+      margin: 0 0 10px 0;
+      font-size: 12px;
+      color: #37475a;
+    }
+
+    .preview-data {
+      display: flex;
+      padding: 4px 0;
+      font-size: 11px;
+    }
+
+    .preview-label {
+      width: 70px;
+      color: #6c757d;
+    }
+
+    select.form-input {
+      cursor: pointer;
+    }
+
+    .matching-drivers-list {
+      border: 1px solid #e7e9ec;
+      border-radius: 6px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .matching-driver-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid #e7e9ec;
+      font-size: 11px;
+    }
+
+    .matching-driver-item:last-child {
+      border-bottom: none;
+    }
+
+    .matching-driver-item .driver-name {
+      font-weight: 600;
+      color: #232f3e;
+    }
+
+    .matching-driver-item .driver-contact {
+      color: #6c757d;
+      font-size: 10px;
+    }
+
+    .expected-driver-box {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      border-radius: 6px;
+      padding: 12px 14px;
+      color: #155724;
+    }
+
+    /* Review modal form elements */
+    #reviewModal .modal-body label {
+      display: block;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      color: #37475a;
+    }
+
+    #reviewModal .modal-body textarea,
+    #reviewModal .modal-body input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d5d9d9;
+      border-radius: 4px;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+
+    #reviewModal .modal-body textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    #reviewModal .modal-body textarea:focus,
+    #reviewModal .modal-body input[type="text"]:focus {
+      outline: none;
+      border-color: #00a86b;
+      box-shadow: 0 0 0 2px rgba(255, 153, 0, 0.2);
+    }
+
+    /* Modal body general styles */
     .modal-body h4 {
-      color: #667eea;
-      margin: 16px 0 8px 0;
+      color: #232f3e;
+      margin: 20px 0 12px 0;
       font-size: 13px;
     }
+
     .modal-body h4:first-child {
       margin-top: 0;
     }
+
+    .modal-body h4 i {
+      color: #00a86b;
+      margin-right: 6px;
+    }
+
+    .modal-body p {
+      font-size: 12px;
+      color: #555;
+      margin: 0 0 8px 0;
+    }
+
     .modal-body ul {
-      margin: 8px 0;
-      padding-left: 20px;
+      margin: 8px 0 8px 20px;
+      padding: 0;
     }
+
     .modal-body li {
-      margin: 4px 0;
+      margin: 6px 0;
     }
+    
+    /* Help Modal Specific Styles */
     .modal-body .step {
-      background: #f8f9fa;
-      border-left: 3px solid #667eea;
-      padding: 8px 12px;
-      margin: 8px 0;
-      border-radius: 0 4px 4px 0;
+      background: #f5f6f7;
+      border-left: 3px solid #00a86b;
+      padding: 12px 16px;
+      margin: 10px 0;
+      border-radius: 0 6px 6px 0;
     }
+
     .modal-body .step-number {
-      background: #667eea;
-      color: white;
+      background: #00a86b;
+      color: #232f3e;
       border-radius: 50%;
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       font-size: 11px;
       font-weight: bold;
-      margin-right: 8px;
+      margin-right: 10px;
     }
+
     .modal-body .tip {
       background: #d4edda;
       border: 1px solid #c3e6cb;
-      padding: 8px 12px;
-      border-radius: 4px;
-      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 12px 0;
     }
+
     .modal-body .warning {
       background: #fff3cd;
       border: 1px solid #ffeeba;
-      padding: 8px 12px;
-      border-radius: 4px;
-      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 12px 0;
     }
+
     .modal-body kbd {
-      background: #e9ecef;
-      padding: 2px 6px;
-      border-radius: 3px;
+      background: #e7e9ec;
+      padding: 3px 8px;
+      border-radius: 4px;
       font-family: monospace;
       font-size: 11px;
+      border: 1px solid #d5d9d9;
     }
-    .modal-footer {
-      background: #f8f9fa;
+
+    /* Footer */
+    .app-footer {
+      background: #232f3e;
+      color: #999;
       padding: 12px 16px;
-      text-align: right;
-      border-top: 1px solid #e9ecef;
-    }
-    .modal-footer .version {
-      float: left;
-      color: #6c757d;
+      text-align: center;
       font-size: 10px;
+    }
+
+    .app-footer a {
+      color: #00a86b;
+      text-decoration: none;
+      margin: 0 12px;
+    }
+
+    .app-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .version-badge {
+      display: inline-block;
+      background: #37475a;
+      color: #aaa;
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 9px;
+      margin-left: 8px;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f5f6f7;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c5c5c5;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+
+    /* Help button in header */
+    .btn-help {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-help:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.5);
     }
   </style>
 </head>
 <body>
+  <div class="main-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-top">
+        <div class="header-left">
+          <div class="header-logo">
+            <i class="fa-solid fa-clipboard-check" style="font-size: 22px; color: #00a86b;"></i>
+            <span class="logo-text">Checkify</span>
+          </div>
+          <div class="header-title">
+            <i class="fa-solid fa-truck-fast"></i>
+            Vehicle Reviews
+            <span id="envBadge" class="env-badge"></span>
+          </div>
+        </div>
+        <div class="header-right">
+          <button id="helpBtn" class="btn-help"><i class="fa-solid fa-circle-question"></i> Help</button>
+          <button id="refreshBtn" class="icon-btn" title="Refresh"><i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+      </div>
+
+      <!-- Auth Bar (shown when logged in) -->
+      <div id="authBar" class="auth-bar hidden">
+        <div class="user-info">
+          <i class="fa-solid fa-user-circle"></i>
+          <span>Signed in as <strong id="currentUsername"></strong></span>
+        </div>
+        <button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</button>
+      </div>
+
+      <!-- Login Section (shown when not logged in) -->
+      <div id="authSection" class="auth-section">
+        <div class="auth-row">
+          <label><i class="fa-solid fa-lock"></i> Vehicle API</label>
+          <input type="text" id="username" placeholder="Username" value="jjroman" />
+          <input type="password" id="password" placeholder="Password" />
+          <button id="loginBtn" class="btn-login"><i class="fa-solid fa-sign-in-alt"></i> Login</button>
+        </div>
+        <div id="authStatus" class="auth-status hidden"></div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="content-area">
+      <!-- Status Messages -->
+      <div id="status" class="status hidden"></div>
+
+      <!-- Controls Card -->
+      <div class="controls-card">
+        <div class="controls-title"><i class="fa-solid fa-calendar-days"></i> Route Selection</div>
+        <div class="controls-row">
+          <label for="dateInput">Date:</label>
+          <input type="date" id="dateInput" />
+          <button id="parseRoutesBtn" class="btn btn-primary">
+            <i class="fa-solid fa-download"></i> Fetch Journeys
+          </button>
+          <button id="saveJsonBtn" class="btn btn-success" disabled>
+            <i class="fa-solid fa-floppy-disk"></i> Save JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="results" class="hidden">
+        <div class="results-header">
+          <h3><i class="fa-solid fa-route"></i> Routes <span id="routesCount" style="font-weight: 400; opacity: 0.8;"></span></h3>
+        </div>
+        <div class="table-container">
+          <div id="routesList"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
   <!-- Help Modal -->
   <div id="helpModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3>📖 How to Use This Extension</h3>
+        <h3><i class="fa-solid fa-book-open"></i> How to Use Checkify</h3>
         <button class="modal-close" id="closeHelpBtn">&times;</button>
       </div>
       <div class="modal-body">
-        <h4>🚀 Quick Start</h4>
+        <h4><i class="fa-solid fa-rocket"></i> Quick Start</h4>
         <div class="step">
           <span class="step-number">1</span>
-          <strong>Login to Amazon Logistics</strong> - Make sure you're logged into 
-          <a href="https://logistics.amazon.com" target="_blank">logistics.amazon.com</a> in your browser.
+          <strong>Login to Logistics Portal</strong> - Make sure you're logged into 
+          <a href="https://logistics.amazon.com" target="_blank" style="color: #00a86b;">the logistics portal</a> in your browser.
         </div>
         <div class="step">
           <span class="step-number">2</span>
-          <strong>Login to Vehicle API</strong> - Enter your username and password in the authentication section and click <kbd>Login</kbd>.
+          <strong>Login to Vehicle API</strong> - Enter your username and password in the header and click <kbd>Login</kbd>.
         </div>
         <div class="step">
           <span class="step-number">3</span>
@@ -895,108 +1306,64 @@
         </div>
         <div class="step">
           <span class="step-number">4</span>
-          <strong>Fetch Journeys</strong> - Click the <kbd>📦 Fetch Journeys</kbd> button to retrieve routes from Amazon Logistics.
+          <strong>Fetch Journeys</strong> - Click the <kbd>Fetch Journeys</kbd> button to retrieve routes from Amazon Logistics.
         </div>
         <div class="step">
           <span class="step-number">5</span>
           <strong>Create Reviews</strong> - Use the action buttons to create vehicle reviews.
         </div>
 
-        <h4>📝 Creating Reviews (Two Modes)</h4>
+        <h4><i class="fa-solid fa-file-lines"></i> Creating Reviews</h4>
         <p>Routes with complete data (VIN + Driver contact) show two options:</p>
         <ul>
-          <li><strong>📧 Send directly</strong> (green) - Creates review AND sends inspection notification to driver immediately.</li>
-          <li><strong>📝 Create Review</strong> (blue) - Creates review in PENDING status. Send later from Dashboard.</li>
+          <li><strong style="color: #00a86b;">📧 Send directly</strong> - Creates review AND sends inspection notification to driver immediately.</li>
+          <li><strong style="color: #007bff;">📝 Create Review</strong> - Creates review in PENDING status. Send later from Dashboard.</li>
         </ul>
-        <p>Routes with incomplete data show one option:</p>
+        <p>Routes with incomplete data show:</p>
         <ul>
-          <li><strong>📝 Create Review</strong> (orange) - Creates review in PENDING status with available data.</li>
+          <li><strong style="color: #fd7e14;">📝 Create Pending</strong> - Creates review in PENDING status with available data.</li>
         </ul>
 
-        <h4>📊 Review Status</h4>
-        <ul>
-          <li><span class="status-badge pending">PENDING</span> - Created, awaiting send</li>
-          <li><span class="status-badge sent">SENT</span> - Notification sent to driver</li>
-          <li><span class="status-badge in-progress">IN PROGRESS</span> - Driver started inspection</li>
-          <li><span class="status-badge completed">COMPLETED</span> - Inspection finished</li>
-        </ul>
-
-        <h4>📍 Data Indicators</h4>
-        <ul>
-          <li>✅ <strong>Complete</strong> - Has VIN and driver contact (phone/email)</li>
-          <li>⚠️ <strong>Incomplete</strong> - Missing VIN or driver contact</li>
-        </ul>
+        <h4><i class="fa-solid fa-chart-simple"></i> Review Status</h4>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+          <span class="status-badge pending">PENDING</span>
+          <span class="status-badge sent">SENT</span>
+          <span class="status-badge in-progress">IN PROGRESS</span>
+          <span class="status-badge completed">COMPLETED</span>
+        </div>
 
         <div class="tip">
           💡 <strong>Tip:</strong> You can complete missing data and send inspections later from the Dashboard.
         </div>
 
         <div class="warning">
-          ⚠️ <strong>Note:</strong> You must be logged into both Amazon Logistics AND the Vehicle API for all features to work.
+          ⚠️ <strong>Note:</strong> You must be logged into both the Logistics Portal AND the Vehicle API for all features to work.
         </div>
-
-        <h4>❓ Need More Help?</h4>
-        <p>Check the <code>/documentation</code> folder for detailed guides.</p>
       </div>
       <div class="modal-footer">
-        <span class="version">Version 1.2.0</span>
-        <button class="btn" id="closeHelpBtn2" style="width: auto; margin: 0; padding: 6px 16px;">Got it!</button>
+        <span class="version">Version 1.3.0</span>
+        <button class="btn-modal btn-primary" id="closeHelpBtn2">Got it!</button>
       </div>
     </div>
   </div>
 
-  <!-- Review Modal (for Create & Send / Create Only dialogs) -->
+  <!-- Review Modal -->
   <div id="reviewModal" class="modal-overlay">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="reviewModalTitle">📝 Create Review</h3>
+        <h3 id="reviewModalTitle"><i class="fa-solid fa-file-pen"></i> Create Review</h3>
         <button class="modal-close" id="closeReviewBtn">&times;</button>
       </div>
       <div class="modal-body" id="reviewModalBody">
         <!-- Content will be dynamically inserted -->
       </div>
       <div class="modal-footer">
-        <button id="reviewModalCancel" class="btn-modal btn-secondary" style="margin-right: 8px;">Cancel</button>
+        <button id="reviewModalCancel" class="btn-modal btn-secondary">Cancel</button>
         <button id="reviewModalConfirm" class="btn-modal btn-success">Confirm</button>
       </div>
     </div>
   </div>
 
-  <div class="header-row">
-    <h2>🚚 Amazon Logistics <span id="envBadge" class="env-badge"></span></h2>
-    <button id="helpBtn" class="btn-help">❓ Help</button>
-  </div>
-  
-  <!-- Authentication Bar (shown when logged in) -->
-  <div id="authBar" class="auth-bar hidden">
-    <span class="auth-bar-user">👤 <span id="currentUsername"></span></span>
-    <button id="logoutBtn" class="btn-logout">Logout</button>
-  </div>
-  
-  <!-- Authentication Section (shown when not logged in) -->
-  <div id="authSection" class="auth-section">
-    <label>🔐</label>
-    <input type="text" id="username" placeholder="Username" value="jjroman" />
-    <input type="password" id="password" placeholder="Password" />
-    <button id="loginBtn" class="btn-login">Login</button>
-    <div id="authStatus" class="auth-status hidden"></div>
-  </div>
-  
-  <!-- Route Parsing Controls -->
-  <div class="controls-row">
-    <label>Date:</label>
-    <input type="date" id="dateInput" />
-    <button id="parseRoutesBtn" class="btn">📦 Fetch Journeys</button>
-    <button id="saveJsonBtn" class="btn" style="background: #28a745;" disabled>💾 Save JSON</button>
-  </div>
-  
-  <div id="status" class="status hidden"></div>
-  
-  <!-- Results Section -->
-  <div id="results" class="hidden">
-    <div id="routesList"></div>
-  </div>
-  
   <script src="config.js"></script>
   <script src="popup-minimal.js"></script>
 </body>
