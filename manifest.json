@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Amazon Logistics Data Extractor",
-  "version": "1.3.0",
-  "description": "Extract journey and route data from Amazon Logistics with automatic review creation",
+  "version": "1.4.0",
+  "description": "Extract journey and route data from Amazon Logistics with automatic review creation and fleet vehicle synchronization",
   "permissions": [
     "downloads",
     "tabs",

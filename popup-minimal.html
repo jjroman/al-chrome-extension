@@ -268,6 +268,63 @@
       background: #f5f6f7;
     }
 
+    /* Tab Navigation */
+    .tab-navigation {
+      display: flex;
+      gap: 0;
+      background: white;
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      margin-bottom: 0;
+      overflow: hidden;
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 14px 20px;
+      background: #f0f2f2;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #565959;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .tab-button:hover {
+      background: #e3e6e6;
+      color: #232f3e;
+    }
+
+    .tab-button.active {
+      background: white;
+      color: #00a86b;
+      border-bottom-color: #00a86b;
+    }
+
+    .tab-button i {
+      font-size: 16px;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
     /* Controls Card */
     .controls-card {
       background: white;
@@ -397,6 +454,12 @@
       background: #f8d7da;
       border: 1px solid #f5c6cb;
       color: #721c24;
+    }
+
+    .status.warning {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
     }
 
     .status.loading {
@@ -1255,18 +1318,66 @@
       <!-- Status Messages -->
       <div id="status" class="status hidden"></div>
 
-      <!-- Controls Card -->
-      <div class="controls-card">
-        <div class="controls-title"><i class="fa-solid fa-calendar-days"></i> Route Selection</div>
-        <div class="controls-row">
-          <label for="dateInput">Date:</label>
-          <input type="date" id="dateInput" />
-          <button id="parseRoutesBtn" class="btn btn-primary">
-            <i class="fa-solid fa-download"></i> Fetch Journeys
-          </button>
-          <button id="saveJsonBtn" class="btn btn-success" disabled>
-            <i class="fa-solid fa-floppy-disk"></i> Save JSON
-          </button>
+      <!-- Tab Navigation -->
+      <div class="tab-navigation">
+        <button class="tab-button active" data-tab="routes">
+          <i class="fa-solid fa-route"></i> Routes
+        </button>
+        <button class="tab-button" data-tab="fleet">
+          <i class="fa-solid fa-truck"></i> Fleet
+        </button>
+      </div>
+
+      <!-- Routes Tab Content -->
+      <div id="routesTab" class="tab-content active">
+        <!-- Route Selection Controls -->
+        <div class="controls-card">
+          <div class="controls-title"><i class="fa-solid fa-calendar-days"></i> Route Selection</div>
+          <div class="controls-row">
+            <label for="dateInput">Date:</label>
+            <input type="date" id="dateInput" />
+            <button id="parseRoutesBtn" class="btn btn-primary">
+              <i class="fa-solid fa-download"></i> Fetch Journeys
+            </button>
+            <button id="saveJsonBtn" class="btn btn-success" disabled>
+              <i class="fa-solid fa-floppy-disk"></i> Save JSON
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet Tab Content -->
+      <div id="fleetTab" class="tab-content">
+        <!-- Fleet Management Controls -->
+        <div class="controls-card">
+          <div class="controls-title"><i class="fa-solid fa-truck"></i> Fleet Management</div>
+          <div class="controls-row">
+            <button id="fetchFleetBtn" class="btn btn-primary">
+              <i class="fa-solid fa-warehouse"></i> Fetch Fleet Vehicles
+            </button>
+            <button id="syncFleetBtn" class="btn btn-success" disabled>
+              <i class="fa-solid fa-sync"></i> Sync Selected Vehicles
+            </button>
+          </div>
+        </div>
+
+        <!-- Fleet Results Section -->
+        <div id="fleetResults" class="hidden">
+          <div class="results-header">
+            <h3>
+              <i class="fa-solid fa-warehouse"></i> Fleet Vehicles 
+              <span id="fleetCount" style="font-weight: 400; opacity: 0.8;"></span>
+            </h3>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label style="font-size: 12px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                <input type="checkbox" id="selectAllFleet" style="cursor: pointer;" />
+                Select All Missing
+              </label>
+            </div>
+          </div>
+          <div class="table-container">
+            <div id="fleetList"></div>
+          </div>
         </div>
       </div>
 

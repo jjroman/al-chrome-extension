@@ -1,6 +1,6 @@
 // Configuration file for API endpoints
 // Change this to 'local' for local development or 'production' for deployed API
-const ENVIRONMENT = 'local'; // Options: 'local', 'production'
+const ENVIRONMENT = 'production'; // Options: 'local', 'production'
 
 const ENVIRONMENTS = {
   local: {
@@ -35,6 +35,7 @@ const CONFIG = {
   amazonLogistics: {
     baseUrl: 'https://logistics.amazon.com',
     routeSummaries: '/operations/execution/api/route-summaries',
+    fleetVehicles: '/fleet-management/api/vehicles?vehicleStatuses=ACTIVE,MAINTENANCE,PENDING',
     serviceAreaId: 'ffbac4b5-8850-48e8-86bd-4403685d46d7'
   },
   

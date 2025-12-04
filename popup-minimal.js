@@ -75,6 +75,14 @@ function displayEnvironmentBadge() {
 }
 
 function setupEventListeners() {
+  // Tab switching
+  document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const tabName = button.getAttribute('data-tab');
+      switchTab(tabName);
+    });
+  });
+
   // Login/Logout
   document.getElementById('loginBtn').addEventListener('click', authenticate);
   document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -87,6 +95,10 @@ function setupEventListeners() {
       saveJourneysAsJson(window.parsedJourneys, date);
     }
   });
+  
+  // Fleet management actions
+  document.getElementById('fetchFleetBtn').addEventListener('click', fetchFleetVehicles);
+  document.getElementById('syncFleetBtn').addEventListener('click', syncMissingVehicles);
   
   // Help modal
   document.getElementById('helpBtn').addEventListener('click', () => {
@@ -133,6 +145,50 @@ function setupEventListeners() {
   document.getElementById('password').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') authenticate();
   });
+}
+
+// Tab switching
+function switchTab(tabName) {
+  // Update tab buttons
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabName) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Update tab content
+  document.querySelectorAll('.tab-content').forEach(content => {
+    if (content.id === `${tabName}Tab`) {
+      content.classList.add('active');
+    } else {
+      content.classList.remove('active');
+    }
+  });
+
+  // Hide/show results section based on active tab
+  const resultsSection = document.getElementById('results');
+  const fleetResultsSection = document.getElementById('fleetResults');
+  
+  if (tabName === 'fleet') {
+    // Hide routes results when on fleet tab
+    resultsSection.classList.add('hidden');
+    // Show fleet results if data exists
+    if (fleetVehicles.length > 0) {
+      fleetResultsSection.classList.remove('hidden');
+    }
+  } else if (tabName === 'routes') {
+    // Hide fleet results when on routes tab
+    fleetResultsSection.classList.add('hidden');
+    // Show routes results if data exists
+    if (window.parsedJourneys) {
+      resultsSection.classList.remove('hidden');
+    }
+  }
+
+  // Clear status message when switching tabs
+  document.getElementById('status').classList.add('hidden');
 }
 
 // Authentication
@@ -754,3 +810,346 @@ function saveJourneysAsJson(journeys, date) {
   
   showStatus(`✓ Saved ${allJourneys.length} journeys`, 'success');
 }
+
+// Fleet Management Functions
+let fleetVehicles = [];
+let missingVehicles = [];
+
+// Fetch fleet vehicles from Amazon Fleet Management API
+async function fetchFleetVehicles() {
+  if (!authToken) {
+    showStatus('Please login to Vehicle API first', 'error');
+    return;
+  }
+
+  if (isTokenExpired(authToken)) {
+    handleExpiredToken();
+    return;
+  }
+
+  showStatus('Fetching fleet vehicles from Amazon...', 'loading');
+  document.getElementById('syncFleetBtn').disabled = true;
+
+  try {
+    const fleetUrl = `${CONFIG.amazonLogistics.baseUrl}${CONFIG.amazonLogistics.fleetVehicles}`;
+    
+    const response = await fetch(fleetUrl, { credentials: 'include' });
+    
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        throw new Error('Amazon session expired. Please login to logistics.amazon.com first.');
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (!data.data || !data.data.vehicles || !Array.isArray(data.data.vehicles)) {
+      throw new Error('Invalid fleet data structure');
+    }
+
+    fleetVehicles = data.data.vehicles;
+    console.log(`📦 Fetched ${fleetVehicles.length} fleet vehicles`);
+
+    // Check which vehicles exist in our system
+    await checkFleetVehiclesInSystem();
+
+  } catch (error) {
+    console.error('Error fetching fleet vehicles:', error);
+    showStatus(`❌ ${error.message}`, 'error');
+  }
+}
+
+// Check which fleet vehicles exist in the Vehicle API system
+async function checkFleetVehiclesInSystem() {
+  showStatus('Checking vehicles in system...', 'loading');
+
+  try {
+    const vins = fleetVehicles.map(v => v.vin).filter(vin => vin);
+    
+    if (vins.length === 0) {
+      showStatus('No valid VINs found in fleet data', 'error');
+      return;
+    }
+
+    // Check each VIN against the Vehicle API
+    const checkPromises = vins.map(async (vin) => {
+      try {
+        const response = await fetch(
+          `${CONFIG.vehicleApi.baseUrl}${CONFIG.vehicleApi.vehicleByVin}/${vin}`,
+          {
+            method: 'GET',
+            headers: {
+              'accept': 'application/json',
+              'Authorization': `Bearer ${authToken}`
+            }
+          }
+        );
+
+        // 404 means vehicle doesn't exist
+        if (response.status === 404) {
+          return { vin, exists: false };
+        }
+        
+        if (response.ok) {
+          return { vin, exists: true };
+        }
+        
+        return { vin, exists: false };
+      } catch (error) {
+        console.error(`Error checking VIN ${vin}:`, error);
+        return { vin, exists: false };
+      }
+    });
+
+    const results = await Promise.all(checkPromises);
+    const missingVins = results.filter(r => !r.exists).map(r => r.vin);
+    
+    // Get full vehicle data for missing vehicles
+    missingVehicles = fleetVehicles.filter(v => missingVins.includes(v.vin));
+
+    console.log(`✅ Found ${fleetVehicles.length - missingVehicles.length} existing vehicles`);
+    console.log(`⚠️ Found ${missingVehicles.length} missing vehicles`);
+
+    // Display fleet vehicles table
+    displayFleetVehicles(fleetVehicles, missingVehicles);
+
+    if (missingVehicles.length > 0) {
+      showStatus(
+        `✅ Found ${fleetVehicles.length} fleet vehicles. ${missingVehicles.length} not in system. Select vehicles and click "Sync Selected Vehicles".`,
+        'success'
+      );
+      document.getElementById('syncFleetBtn').disabled = false;
+    } else {
+      showStatus(
+        `✅ All ${fleetVehicles.length} fleet vehicles already exist in the system!`,
+        'success'
+      );
+      document.getElementById('syncFleetBtn').disabled = true;
+    }
+
+  } catch (error) {
+    console.error('Error checking vehicles:', error);
+    showStatus(`❌ Error checking vehicles: ${error.message}`, 'error');
+  }
+}
+
+// Display fleet vehicles in a table with checkboxes
+function displayFleetVehicles(allVehicles, missing) {
+  const fleetResults = document.getElementById('fleetResults');
+  const fleetList = document.getElementById('fleetList');
+  const fleetCount = document.getElementById('fleetCount');
+  
+  fleetList.innerHTML = '';
+  fleetCount.textContent = `(${allVehicles.length} total, ${missing.length} missing)`;
+
+  if (allVehicles.length > 0) {
+    const tableContainer = document.createElement('div');
+    tableContainer.className = 'table-container';
+    const table = document.createElement('table');
+    table.innerHTML = `
+      <thead>
+        <tr>
+          <th style="width: 40px;"></th>
+          <th>VIN</th>
+          <th>Year</th>
+          <th>Make</th>
+          <th>Model</th>
+          <th>License</th>
+          <th>DSP ID</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="fleetTableBody"></tbody>
+    `;
+    tableContainer.appendChild(table);
+    fleetList.appendChild(tableContainer);
+
+    const tbody = document.getElementById('fleetTableBody');
+    const missingVins = missing.map(v => v.vin);
+
+    allVehicles.forEach((vehicle, index) => {
+      const row = document.createElement('tr');
+      const isMissing = missingVins.includes(vehicle.vin);
+      
+      // Checkbox cell
+      let checkboxCell = '';
+      if (isMissing) {
+        checkboxCell = `<input type="checkbox" class="fleet-vehicle-checkbox" data-vin="${vehicle.vin}" data-index="${index}" />`;
+      } else {
+        checkboxCell = '<span style="color: #00a86b; font-size: 14px;">✓</span>';
+      }
+
+      // Status indicator
+      let statusBadge = '';
+      if (isMissing) {
+        statusBadge = '<span class="cell-error" title="Not in system">⚠️ Missing</span>';
+      } else {
+        statusBadge = '<span class="cell-ok" title="Already in system">✓ Exists</span>';
+      }
+
+      row.innerHTML = `
+        <td style="text-align: center;">${checkboxCell}</td>
+        <td>${vehicle.vin || 'N/A'}</td>
+        <td>${vehicle.year || 'N/A'}</td>
+        <td>${vehicle.make || 'N/A'}</td>
+        <td>${vehicle.model || 'N/A'}</td>
+        <td>${vehicle.registrationNo || 'N/A'}</td>
+        <td>${vehicle.dspVehicleId || 'N/A'}</td>
+        <td>${statusBadge}</td>
+      `;
+
+      // Add visual distinction for existing vehicles
+      if (!isMissing) {
+        row.style.opacity = '0.6';
+        row.style.backgroundColor = '#f8f9fa';
+      }
+
+      tbody.appendChild(row);
+    });
+
+    // Setup select all checkbox
+    const selectAllCheckbox = document.getElementById('selectAllFleet');
+    selectAllCheckbox.checked = false;
+    selectAllCheckbox.addEventListener('change', (e) => {
+      const checkboxes = document.querySelectorAll('.fleet-vehicle-checkbox');
+      checkboxes.forEach(cb => cb.checked = e.target.checked);
+      updateSyncButtonState();
+    });
+
+    // Setup individual checkboxes
+    document.querySelectorAll('.fleet-vehicle-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', updateSyncButtonState);
+    });
+  }
+
+  fleetResults.classList.remove('hidden');
+}
+
+// Update sync button state based on checkbox selection
+function updateSyncButtonState() {
+  const selectedCheckboxes = document.querySelectorAll('.fleet-vehicle-checkbox:checked');
+  const syncBtn = document.getElementById('syncFleetBtn');
+  
+  if (selectedCheckboxes.length > 0) {
+    syncBtn.disabled = false;
+    syncBtn.innerHTML = `<i class="fa-solid fa-sync"></i> Sync Selected Vehicles (${selectedCheckboxes.length})`;
+  } else {
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '<i class="fa-solid fa-sync"></i> Sync Selected Vehicles';
+  }
+}
+
+// Sync missing vehicles to the Vehicle API
+async function syncMissingVehicles() {
+  if (!authToken || isTokenExpired(authToken)) {
+    handleExpiredToken();
+    return;
+  }
+
+  // Get selected vehicles
+  const selectedCheckboxes = document.querySelectorAll('.fleet-vehicle-checkbox:checked');
+  const selectedVins = Array.from(selectedCheckboxes).map(cb => cb.getAttribute('data-vin'));
+  const vehiclesToSync = missingVehicles.filter(v => selectedVins.includes(v.vin));
+
+  if (vehiclesToSync.length === 0) {
+    showStatus('No vehicles selected to sync', 'info');
+    return;
+  }
+
+  showStatus(`Syncing ${vehiclesToSync.length} vehicles...`, 'loading');
+  document.getElementById('syncFleetBtn').disabled = true;
+
+  let successCount = 0;
+  let failCount = 0;
+  const errors = [];
+
+  for (const vehicle of vehiclesToSync) {
+    try {
+      // Map fleet vehicle data to Vehicle API format
+      const vehicleData = {
+        vin: vehicle.vin,
+        make: vehicle.make,
+        model: vehicle.model,
+        year: vehicle.year,
+        licensePlate: vehicle.registrationNo || '',
+        type: vehicle.serviceTier || '',
+        status: 'Active',
+        color: null,
+        mileage: null,
+        purchaseDate: null,
+        warrantyExpiry: null,
+        requireDot: false,
+        notes: [
+          `Imported from Amazon Fleet`,
+          `Fleet Status: ${vehicle.status}`,
+          `DSP Vehicle ID: ${vehicle.dspVehicleId || 'N/A'}`,
+          `Ownership: ${vehicle.vehicleOwnershipType || 'Unknown'}`
+        ]
+      };
+
+      const response = await fetch(
+        `${CONFIG.vehicleApi.baseUrl}${CONFIG.vehicleApi.vehicles}`,
+        {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(vehicleData)
+        }
+      );
+
+      if (response.ok) {
+        successCount++;
+        console.log(`✅ Added vehicle: ${vehicle.vin}`);
+      } else {
+        failCount++;
+        const errorText = await response.text();
+        errors.push(`${vehicle.vin}: ${errorText}`);
+        console.error(`❌ Failed to add vehicle ${vehicle.vin}:`, errorText);
+      }
+
+      // Small delay to avoid overwhelming the API
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+    } catch (error) {
+      failCount++;
+      errors.push(`${vehicle.vin}: ${error.message}`);
+      console.error(`❌ Error adding vehicle ${vehicle.vin}:`, error);
+    }
+  }
+
+  // Show results
+  if (successCount > 0 && failCount === 0) {
+    showStatus(
+      `✅ Successfully added ${successCount} vehicle${successCount > 1 ? 's' : ''} to the system!`,
+      'success'
+    );
+    // Remove synced vehicles from missing list
+    missingVehicles = missingVehicles.filter(v => !selectedVins.includes(v.vin));
+    // Refresh the table
+    await checkFleetVehiclesInSystem();
+  } else if (successCount > 0 && failCount > 0) {
+    showStatus(
+      `⚠️ Added ${successCount} vehicles, but ${failCount} failed. Check console for details.`,
+      'warning'
+    );
+    console.error('Failed vehicles:', errors);
+    // Remove successfully synced vehicles from missing list
+    const failedVins = errors.map(e => e.split(':')[0]);
+    missingVehicles = missingVehicles.filter(v => selectedVins.includes(v.vin) && failedVins.includes(v.vin));
+    // Refresh the table
+    await checkFleetVehiclesInSystem();
+  } else {
+    showStatus(
+      `❌ Failed to add vehicles. Check console for details.`,
+      'error'
+    );
+    console.error('All vehicles failed:', errors);
+    document.getElementById('syncFleetBtn').disabled = false;
+  }
+}
+
+

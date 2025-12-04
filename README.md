@@ -5,6 +5,7 @@ A Chrome extension to extract journey and route data from Amazon Logistics and s
 ## Features
 
 - 📊 Extract route summaries from Amazon Logistics
+- 🚚 **NEW: Fetch and sync fleet vehicles from Amazon Fleet Management**
 - 🔐 Authenticate with Vehicle API
 - ✅ Automatic check for existing reviews (shows **CREATED** badge)
 - ⚠️ Visual indicators for missing vehicles/drivers (red highlighting)
@@ -35,7 +36,27 @@ First, make sure you are logged into [Amazon Logistics](https://logistics.amazon
 3. Click the **Login** button
 4. Once authenticated, you'll see your username displayed
 
-#### Step 3: Select a Date and Get Journeys
+#### Step 3: (Optional) Sync Fleet Vehicles
+
+**NEW FEATURE:** Before fetching routes, you can sync vehicles from Amazon Fleet Management:
+
+1. Click the **🚚 Fetch Fleet Vehicles** button
+2. The extension will:
+   - Fetch all active vehicles from Amazon Fleet Management API
+   - Check which vehicles already exist in your Vehicle API system
+   - Display how many vehicles are missing
+3. If missing vehicles are found, click **🔄 Sync Missing Vehicles** to add them
+4. Vehicles will be imported with:
+   - VIN, Make, Model, Year
+   - License Plate
+   - Notes including Amazon Fleet status and DSP ID
+
+**Benefits:**
+- Automatically populate your Vehicle API database with all fleet vehicles
+- No need to manually create vehicles one by one
+- Ensures all fleet vehicles are available for route reviews
+
+#### Step 4: Select a Date and Get Journeys
 
 1. Select the date you want to retrieve routes for using the date picker
 2. Click the **Get Journeys** button
@@ -45,7 +66,7 @@ First, make sure you are logged into [Amazon Logistics](https://logistics.amazon
    - Verify vehicle/driver existence for each route
 4. Routes are displayed with visual status indicators
 
-#### Step 4: Understand Route Status Indicators
+#### Step 5: Understand Route Status Indicators
 
 Each route displays its current status:
 
